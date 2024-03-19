@@ -30,7 +30,7 @@ import time
 from datasets import load_dataset
 
 checkpoint_path = sys.argv[1]
-mode = sys.argv[2] # best or last
+# mode = sys.argv[2] # best or last
 print(checkpoint_path)
 
 config = "./config/mlm.yaml"
@@ -246,6 +246,6 @@ for task in recog_set:
         print(f'{task} CER : {cer}')
 
 
-        with open(f"{resultSavePath}/{mode}_analysis.json", 'w') as f:
+        with open(f"{resultSavePath}/analysis.json", 'w') as f:
             json.dump(result_dict, f, ensure_ascii=False, indent=1)
     print(f"averge time:{total_time / data_len}")
