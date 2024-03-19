@@ -1,0 +1,10 @@
+datasets==2.14.5
+huggingface-hub==0.17.2
+jiwer==3.0.2
+numpy==1.23.5
+torch==1.10.0+cu111
+torchaudio==0.10.0+rocm4.1
+torchvision==0.11.0+cu111
+tqdm==4.65.0
+transformers==4.27.4
+wandb==0.14.2
