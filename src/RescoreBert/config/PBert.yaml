@@ -1,0 +1,27 @@
+args:
+  nbest: 10 # max: 50
+  withLM: False
+  dataset: aishell
+
+train:
+  epoch: 10
+  batch_size: 128
+  accumgrad: 2
+  print_loss: 5000
+  lr: 1e-6
+  freeze_epoch: -1
+  hard_label: True
+  loss_type: Entropy
+  weightByWER: none # positive, inverse, square, none
+  warmup_ratio: 0.1
+  layer_op: # extra, lastInit_n or none
+  MWER: # MWER, MWED
+  reduction: mean
+  combineScore: False
+  addLMScore: False
+  noCLS: False
+  noSEP: False
+
+recog:
+  batch: 256
+  find_weight: True 

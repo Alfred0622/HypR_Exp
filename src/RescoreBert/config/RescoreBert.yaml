@@ -1,0 +1,17 @@
+args:
+  nbest: 10 # max: 50
+  withLM: True
+  dataset: AISHELL1
+train:
+  epoch: 10
+  train_batch: 256
+  accumgrad: 1
+  print_loss: 5000
+  lr: 1e-5
+  reduction: sum
+
+recog:
+  recog_batch: 128
+  for_train: True
+  test_speed: True
+  find_weight: True
