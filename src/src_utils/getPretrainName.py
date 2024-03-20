@@ -1,7 +1,7 @@
 def getBertPretrainName(dataset):
-    if (dataset in ['aishell', 'aishell2']):
+    if (dataset in ['aishell', 'aishell2', 'AISHELL1']):
         return 'bert-base-chinese'
-    elif (dataset in ['tedlium2', 'librispeech']):
+    elif (dataset in ['tedlium2', 'librispeech', 'TEDLIUM2', 'LibriSpeech']):
         return 'bert-base-uncased'
     elif (dataset in ['csj']):
         return 'cl-tohoku/bert-base-japanese'

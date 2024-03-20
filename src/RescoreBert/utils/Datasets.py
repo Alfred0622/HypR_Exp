@@ -4,7 +4,8 @@ from tqdm import tqdm
 from torch.nn import Softmax
 import numpy as np
 from torch.nn.utils.rnn import pad_sequence
-
+import jiwer
+import datasets
 
 class LM_Dataset(Dataset):
     def __init__(self, nbest_list):
@@ -402,42 +403,55 @@ def getRescoreDataset(data_json, dataset, tokenizer, mode, topk=50, fetch_num=-1
                         }
                     )
 
-        elif isinstance(data_json, list):
+        elif isinstance(data_json, list) or isinstance(data_json, datasets.arrow_dataset.Dataset):
             for i, data in enumerate(tqdm(data_json, ncols=100)):
                 wers = []
 
-                for err in data["err"][:topk]:
-                    wers.append(err["err"])
+            for hyp in data['hyps'][:topk]:
+                measure = jiwer.compute_measures(data['ref'], hyp)
+                wers.append(measure['wer'])
 
-                wers = torch.tensor(wers, dtype=torch.float32)
-                avg_err = wers.mean().item()
+            wers = torch.tensor(wers, dtype=torch.float32)
+            avg_err = wers.mean().item()
 
-                for k, (hyp, score, rescore, err) in enumerate(
-                    zip(
-                        data["hyps"][:topk], data["score"][:topk], data["rescore"][:topk], data["err"][:topk]
-                    )
-                ):
-                    hyp = preprocess_string(hyp, dataset)
-                    output = tokenizer(hyp)
+            measures = []
+            for k, (hyp, score, rescore, err) in enumerate(
+                zip(
+                    data["hyps"][:topk], data["score"][:topk], data["rescore"][:topk], data["err"][:topk]
+                )
+            ):
+                measure = jiwer.compute_measures(data['ref'], hyp)
+                hyp_wers = [
+                    measure['wer'],
+                    measure['hits'],
+                    measure['substitutions'],
+                    measure['deletions'],
+                    measure['insertions']
+                ]
 
-                    if "token_type_ids" in output.keys():
-                        input_ids, _, attention_mask = tokenizer(hyp).values()
-                    else:
-                        input_ids, attention_mask = tokenizer(hyp).values()
+                measures.append(hyp_wers)
 
-                    data_list.append(
-                        {
-                            "index": k,
-                            "name": data["utt_id"],
-                            "input_ids": input_ids,
-                            "attention_mask": attention_mask,
-                            "score": score,
-                            "mlm_score": rescore,
-                            "err": err,
-                            "wer": err["err"],
-                            "avg_err": avg_err,
-                        }
-                    )
+                hyp = preprocess_string(hyp, dataset)
+                output = tokenizer(hyp)
+
+                if "token_type_ids" in output.keys():
+                    input_ids, _, attention_mask = tokenizer(hyp).values()
+                else:
+                    input_ids, attention_mask = tokenizer(hyp).values()
+
+                data_list.append(
+                    {
+                        "index": k,
+                        "name": data["utt_id"],
+                        "input_ids": input_ids,
+                        "attention_mask": attention_mask,
+                        "score": score,
+                        "mlm_score": rescore,
+                        "err": measures,
+                        "wer": measure['wer'],
+                        "avg_err": avg_err,
+                    }
+                )
                 if fetch_num > 0 and i > fetch_num:
                     break
 
@@ -485,26 +499,37 @@ def getRescoreDataset(data_json, dataset, tokenizer, mode, topk=50, fetch_num=-1
                 if fetch_num > 0 and i > fetch_num:
                     break
 
-        elif isinstance(data_json, list):
+        elif isinstance(data_json, list) or isinstance(data_json, datasets.arrow_dataset.Dataset):
             for i, data in enumerate(tqdm(data_json, ncols=100)):
                 wers = []
-                for err in data["err"][:topk]:
-                    wers.append(err["err"])
+                for hyp in data['hyps'][:topk]:
+                    measure = jiwer.compute_measures(data['ref'], hyp)
+                    wers.append(measure['wer'])
 
                 wers_tensor = torch.tensor(wers, dtype=torch.float32)
                 avg_err = torch.mean(wers_tensor).item()
 
-                scores = torch.tensor(data["score"][:topk])
-
                 input_ids = []
                 attention_masks = []
                 avg_errs = []
+                measures = []
                 for hyp in data["hyps"][:topk]:
                     hyp = preprocess_string(hyp, dataset)
                     output = tokenizer(hyp)
                     input_ids.append(output["input_ids"])
                     attention_masks.append(output["attention_mask"])
                     avg_errs.append(avg_err)
+
+                    measure = jiwer.compute_measures(data['ref'], hyp)
+                    hyp_wers = [
+                        measure['wer'],
+                        measure['hits'],
+                        measure['substitutions'],
+                        measure['deletions'],
+                        measure['insertions']
+                    ]
+
+                    measures.append(hyp_wers)
 
                 nbest = len(data["hyps"][:topk])
 
@@ -516,7 +541,7 @@ def getRescoreDataset(data_json, dataset, tokenizer, mode, topk=50, fetch_num=-1
                         "attention_mask": attention_masks,
                         "score": data["score"][:topk],
                         "rescore": data["rescore"][:topk],
-                        "errs": data["err"][:topk],
+                        "errs": measures,
                         "wer": wers,
                         "avg_err": avg_errs,
                         "nbest": nbest,
@@ -565,7 +590,7 @@ def getRecogDataset(data_json, dataset, tokenizer, topk=50):
                 )
             # if (i > 100):
             #     break
-    elif isinstance(data_json, list):
+    elif isinstance(data_json, list) or isinstance(data_json, datasets.arrow_dataset.Dataset):
         for i, data in enumerate(tqdm(data_json, ncols=100)):
             for j, (hyp, score, rescore, err) in enumerate(
                 zip(data["hyps"][:topk], data["score"][:topk], data["rescore"][:topk], data["err"][:topk])
@@ -914,50 +939,25 @@ def prepareListwiseDataset(
             if get_num > 0 and i > get_num:
                 break
 
-    elif isinstance(data_json, list):
+    elif isinstance(data_json, list) or isinstance(data_json, datasets.arrow_dataset.Dataset):
         print(f"topk:{topk}")
         for i, data in enumerate(tqdm(data_json, ncols=100)):
-            wers = []
-            for err in data["err"][:topk]:
-                wers.append(err["err"])
-            # print(f'wers:{wers}')
-            wers_tensor = np.array(wers)
 
-            if force_Ref:
+            if force_Ref: # put ref into top-k
                 if not (data["ref"] in data["hyps"][:topk]):
                     # print(f"hyps:{data['hyps'][:topk]}")
                     data["hyps"][1:] = data["hyps"][0:-1]
                     data["hyps"][0] = data["ref"]
                     wers.append(0.0)
                     data["score"][1:] = data["score"][0:-1]
-                    data["am_score"][1:] = data["am_score"][0:-1]
-                    data["ctc_score"][1:] = data["ctc_score"][0:-1]
-                    # print(f"hyps after replace:{data['hyps'][:topk]}")
-
-            # if paddingNBest:
-            #     hyp_len = len(data["hyps"])
-            #     nBestMask = [1 for _ in range(hyp_len)]
-            #     if hyp_len < topk:
-            #         pad_len = topk - hyp_len
-            #         data["hyps"] += ["" for _ in range(pad_len)]
-            #         nBestMask += [0 for _ in range(pad_len)]
-            #         data["score"] += [-1e9 for _ in range(pad_len)]
-            #         data["am_score"] += [-1e9 for _ in range(pad_len)]
-            #         data["ctc_score"] += [-1e9 for _ in range(pad_len)]
-            #         print(f"input_ids:{input_ids}")
-            #         print(f"attention_mask:{attention_masks}")
-
-            wers_rank = np.argsort(wers_tensor, kind="stable")
-            wers_rank = torch.from_numpy(wers_rank).type(torch.int32)
-            wers_tensor = torch.from_numpy(wers_tensor)
-
-            avg_err = torch.mean(wers_tensor).item()
+                    data["am_score"][1:] = data["att_score"][0:-1]
+                    data["ctc_score"][1:] = data["ctc_score"][0:-1]        
 
             scores = torch.as_tensor(data["score"][:topk], dtype=torch.float32)
-            am_scores = torch.as_tensor(data["am_score"][:topk], dtype=torch.float32)
+            am_scores = torch.as_tensor(data["att_score"][:topk], dtype=torch.float32)
             ctc_scores = torch.as_tensor(data["ctc_score"][:topk], dtype=torch.float32)
 
-            if (data['lm_score'] is not None):
+            if ('lm_score' in data.keys() and data['lm_score'] is not None):
                 lm_scores = torch.as_tensor(data["lm_score"][:topk], dtype=torch.float32)
             else:
                 lm_scores = torch.as_tensor([0.0 for _ in range(topk)], dtype=torch.float32)
@@ -967,6 +967,8 @@ def prepareListwiseDataset(
             input_ids = []
             attention_masks = []
             avg_errs = []
+            wers = []
+            measures = []
 
             min_len = 10000
             max_len = -1
@@ -979,27 +981,41 @@ def prepareListwiseDataset(
 
                 output = tokenizer(hyp)
 
-                # if add_qe:
-                #     output["input_ids"] = output[
-                #         "input_ids"
-                #     ] + tokenizer.convert_tokens_to_ids(["[MASK]"])
-                #     output["attention_mask"] = output["attention_mask"] + [1]
-
                 input_ids.append(output["input_ids"])
                 attention_masks.append(output["attention_mask"])
-                avg_errs.append(avg_err)
-
+ 
                 if len(output["input_ids"]) > max_len:
                     max_len = len(output["input_ids"])
                 if len(output["input_ids"]) < min_len:
                     min_len = len(output["input_ids"])
 
+                # append WER
+                measure = jiwer.compute_measures(data['ref'], hyp)
+                wers.append(measure['wer'])
+
+                hyp_wers = [
+                    measure['wer'],
+                    measure['hits'],
+                    measure['substitutions'],
+                    measure['deletions'],
+                    measure['insertions']
+                ]
+
+                measures.append(hyp_wers)
+
             nbest = len(data["hyps"][:topk])
 
             ref = data["ref"]
             ref_process = tokenizer(preprocess_string(ref, dataset))
+            wers_tensor = np.array(wers)
+            avg_wer = np.mean(wers_tensor)
 
-            # print(f"wer:{nbest}")
+            wers_rank = np.argsort(wers_tensor, kind="stable")
+            wers_rank = torch.from_numpy(wers_rank).type(torch.int32)
+            wers_tensor = torch.from_numpy(wers_tensor)
+
+            avg_errs = [avg_wer for _ in range(len(data['hyps']))]
+
             data_list.append(
                 {
                     "hyps": data["hyps"],
@@ -1011,7 +1027,7 @@ def prepareListwiseDataset(
                     "ctc_score": ctc_scores,
                     "asr_score": asr_scores,
                     "lm_score": lm_scores,
-                    "errs": data["err"],
+                    "errs": measures,
                     "wer": wers_tensor.float(),
                     "avg_err": avg_errs,
                     "nbest": nbest,

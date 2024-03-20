@@ -9,13 +9,13 @@ def get_valid_set(dataset):
 
 def get_recog_set(dataset):
 
-    if (dataset in ['aishell', 'tedlium2']):
+    if (dataset in ['aishell', 'tedlium2','AISHELL1', 'TEDLIUM2']):
         return ['dev', 'test']
     elif (dataset in ['aishell2']):
         return ['dev', 'test_mic', 'test_ios', 'test_android']
     elif (dataset in ['csj']):
         return ['dev', 'eval1', 'eval2', 'eval3']
-    elif (dataset in ['librispeech']):
+    elif (dataset in ['librispeech', 'LibriSpeech']):
         return ['dev', 'dev_clean', 'dev_other', 'test_clean', 'test_other']
     else:
         raise ValueError(f"Dataset {dataset} not implemented")

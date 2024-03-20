@@ -29,6 +29,7 @@ from torch.optim import AdamW
 import gc
 from jiwer import wer, cer
 import wandb
+from datasets import load_dataset
 
 mode = sys.argv[1]
 checkpoint = None
@@ -64,7 +65,7 @@ else:
 config = f"./config/RescoreBert.yaml"
 args, train_args, recog_args = load_config(config)
 
-setting = "withLM" if (args["withLM"]) else "noLM"
+setting = "withLM" if (args["withLM"]) else "withoutLM"
 
 log_path = Path(f"./log/RescoreBert/{args['dataset']}/{setting}/{mode}")
 log_path.mkdir(parents=True, exist_ok=True)
@@ -79,7 +80,7 @@ logging.basicConfig(
 
 if args["dataset"] in ["aishell2"]:
     dev_set = "dev_ios"
-elif args["dataset"] in ["librispeech"]:
+elif args["dataset"] in ["LibriSpeech"]:
     dev_set = "valid"
 else:
     dev_set = "dev"
@@ -116,8 +117,8 @@ with open(
 ) as f, open(
     f"./data/{args['dataset']}/{setting}/{int(args['nbest'])}best/MLM/{dev_set}/rescore_data.json"
 ) as dev:
-    train_json = json.load(f)
-    valid_json = json.load(dev)
+    train_json = load_dataset(f"ASR-HypR/{args['dataset']}_{setting}", split = 'train')
+    valid_json = json.load(f"ASR-HypR/{args['dataset']}_{setting}", split = dev_set)
 
 if "WANDB_MODE" in os.environ.keys() and os.environ["WANDB_MODE"] == "disabled":
     fetch_num = 100
