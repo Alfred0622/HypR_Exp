@@ -1,5 +1,4 @@
 import os
-import argparse
 import json
 import sys
 
@@ -17,16 +16,13 @@ from utils.Datasets import getRescoreDataset
 from src_utils.LoadConfig import load_config
 from utils.CollateFunc import (
     MDTrainBatch,
-    RescoreBertBatch,
     NBestSampler,
     RescoreBert_BatchSampler,
     MWERBatch,
 )
 from utils.PrepareModel import prepare_RescoreBert
-from utils.DataPara import BalancedDataParallel
 from utils.PrepareScoring import prepareRescoreDict, prepare_score_dict, calculate_cer
 from torch.optim import AdamW
-import gc
 from jiwer import wer, cer
 import wandb
 from datasets import load_dataset
@@ -117,8 +113,8 @@ with open(
 ) as f, open(
     f"./data/{args['dataset']}/{setting}/{int(args['nbest'])}best/MLM/{dev_set}/rescore_data.json"
 ) as dev:
-    train_json = load_dataset(f"ASR-HypR/{args['dataset']}_{setting}", split = 'train')
-    valid_json = json.load(f"ASR-HypR/{args['dataset']}_{setting}", split = dev_set)
+    train_json = json.load(f)
+    valid_json = json.load(dev)
 
 if "WANDB_MODE" in os.environ.keys() and os.environ["WANDB_MODE"] == "disabled":
     fetch_num = 100
@@ -135,7 +131,6 @@ print(f" Tokenization : valid")
 valid_dataset = getRescoreDataset(
     valid_json, args["dataset"], tokenizer, topk=args["nbest"], mode=mode, fetch_num = fetch_num
 )
-
 
 (
     index_dict,
@@ -322,8 +317,6 @@ for e in range(start_epoch, train_args["epoch"]):
             index = 0
             T = scoreSum / werSum  # Temperature T
 
-            # print(f"T:{T}")
-
             combined_score = combined_score / T
             assert (
                 scoreSum.shape == combined_score.shape
@@ -331,9 +324,6 @@ for e in range(start_epoch, train_args["epoch"]):
             assert (
                 werSum.shape == combined_score.shape
             ), f"werSum:{werSum.shape} != combined_score:{combined_score}"
-        
-            # print(f"combined_score:{combined_score}")
-            # print(f"wer:{wer}")
 
             combined_score_before = combined_score.clone()
             wer_before = wer.clone()
@@ -347,9 +337,6 @@ for e in range(start_epoch, train_args["epoch"]):
                 )
 
                 index = index + nbest
-            
-            # print(f"combined_score after softmax:{combined_score}")
-            # print(f"wer after softmax:{wer}")
 
             loss_MWED = wer * torch.log(combined_score)
             loss_MWED = loss_MWED.sum()
@@ -415,15 +402,9 @@ for e in range(start_epoch, train_args["epoch"]):
 
             if mode in ["MWER", "MWED"]:
                 for n, (name, index,score) in enumerate(zip(data["name"],data['index'], output["score"])):
-                    # print(F'index:{index}')
-                    # print(f"rescores:{rescores[index_dict[name]][index]}")
                     rescores[index_dict[name]][index] = score.item()
                     valid_rescore[valid_name_index[name]][index] = score.item()
-                    # print(f"rescores after:{rescores[index_dict[name]]}")
-
             else:
-                # print(f"name:{len(data['name'])}")
-                # print(f"score:{len(output['score'])}")
                 for n, (name, index, score) in enumerate(zip(data["name"], data['index'], output["score"])):
                     rescores[index_dict[name]][index] = score.item()
 
@@ -447,8 +428,6 @@ for e in range(start_epoch, train_args["epoch"]):
 
                 loss_MWER = first_score * (data["wer"] - avg_error)
                 loss_MWER = torch.sum(loss_MWER)
-
-                # print(f'loss_MWER:{loss_MWER}')
 
                 loss = loss_MWER + 1e-4 * loss
 
@@ -501,13 +480,10 @@ for e in range(start_epoch, train_args["epoch"]):
 
                     index = index + nbest
 
-                # print(f'combined_score after scale & softmax:{combined_score}')
                 loss_MWED = wer * torch.log(combined_score)
                 loss_MWED = torch.neg(loss_MWED)
                 loss_MWED = torch.sum(loss_MWED)
                 loss = loss_MWED + 1e-4 * loss
-
-            # print(f'total_loss:{loss}')
 
             if torch.cuda.device_count() > 1:
                 loss = loss.sum()
