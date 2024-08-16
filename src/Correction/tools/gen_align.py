@@ -6,13 +6,17 @@ import json
 from transformers import BertTokenizer, BartTokenizer
 from pathlib import Path
 
+from datasets import load_dataset
+
 dataset = sys.argv[1]
 
 
-if (dataset in ['aishell', 'tedlium2', 'aishell_nbest']):
+if (dataset in ['AISHELL1', 'TEDLIUM2']):
     split_set = ["train", "dev", "test"]
-elif (dataset in ['aishell2']):
-    split_set = ["train", "dev_ios", "test_ios", "test_android", "test_mic"]
+elif (dataset in ['AISHELL2']):
+    split_set = ["train", "dev", "test_ios", "test_android", "test_mic"]
+elif (dataset in ['LibriSpeech']):
+    split_set = ["train", 'dev_clean', 'dev_other', 'test_clean', 'test_other']
 
 setting = ['noLM', 'withLM']
 topk = 4
@@ -20,9 +24,9 @@ topk = 4
 use_concat = False
 
 
-if (dataset in ['aishell', 'aishell2', 'aishell_nbest']):
+if (dataset in ['AISHELL1', 'AISHELL2']):
     tokenizer = BertTokenizer.from_pretrained("fnlp/bart-base-chinese")
-elif (dataset in ['tedlium2', 'librispeech']):
+elif (dataset in ['TEDLIUM2', 'LibriSpeech']):
     tokenizer = BartTokenizer.from_pretrained("facebook/bart-base")
 
 placeholder = "-"
@@ -34,24 +38,24 @@ if __name__ == "__main__":
     for s in setting:
         for task in split_set:
             print(f"task:{task}")
-            if (dataset == 'aishell_nbest'):
-                path = f"../../../data/aishell/4Best_aishell_{task}.json"
-            else:
-                path = f"../../../data/{dataset}/data/{s}/{task}/data.json"
-            with open(path) as f:
-                data = json.load(f)
+
+            # path = f"../../../data/{dataset}/data/{s}/{task}/data.json"
+            # with open(path) as f:
+            #     data = json.load(f)
+
+            data = load_dataset(f'ASR-HypR/{dataset}', split = f"{task}")
 
             result_dict = []
             for i, d in enumerate(data):
                 temp_dict = dict()
                 hyps = list() 
-                if (dataset in ['aishell_nbest', 'tedlium2']):
+                if (dataset in ['TEDLIUM2']):
                     hyps = [tokenizer.tokenize(hyp) for hyp in d['hyps'][:topk]]
                 else:
                     for t in d['hyps'][:topk]:
-                        if (dataset in ['aishell', 'aishell2']):
+                        if (dataset in ['AISHELL1', 'AISHELL2']):
                             hyps.append([x for x in t.replace("<space>", "space").split()])
-                        elif (dataset in ['tedlium2', 'librispeech2']):
+                        elif (dataset in ['TEDLIUM2', 'LibriSpeech']):
                             hyps.append(tokenizer.tokenize(t))
                 align_pair = align(
                     hyps,
@@ -96,6 +100,6 @@ if __name__ == "__main__":
                 save_path.mkdir(exist_ok=True, parents=True)
 
                 with open(
-                    f"{save_path}/{topk}_{name}_token.json", "w"
+                    f"{save_path}/{topk}_align_data.json", "w"
                 ) as f:
                     json.dump(result_dict, f, ensure_ascii=False, indent=2)

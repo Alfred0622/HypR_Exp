@@ -65,15 +65,14 @@ if tokenizer.pad_token is None:
 
 print(f"pad_id:{tokenizer.pad_token_id}")
 
-if args["dataset"] in ["aishell2"]:
-    valid_path = "dev_ios"
-elif args["dataset"] in ["tedlium2"]:
-    valid_path = "dev_trim"
-elif args["dataset"] in ["librispeech"]:
-    valid_path = "valid"
-else:
-    valid_path = "dev"
-
+# if args["dataset"] in ["aishell2"]:
+#     valid_path = "dev_ios"
+# elif args["dataset"] in ["tedlium2"]:
+#     valid_path = "dev_trim"
+# elif args["dataset"] in ["librispeech"]:
+#     valid_path = "valid"
+# else:
+#     valid_path = "dev"
 # print(f"load data.json")
 # with open(
 #     f"../../data/{args['dataset']}/data/{setting}/train/data.json", "r"

@@ -3,7 +3,7 @@ args:
   stop_stage: 1
   nbest: 4
   withLM: False
-  dataset: aishell
+  dataset: AISHELL1 # AISHELL1, AISHELL2, TEDLIUM2, LibriSpeech
 
 train:
   start_epoch: 0

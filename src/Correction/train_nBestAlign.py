@@ -18,6 +18,7 @@ from torch.optim import AdamW
 import wandb
 from pathlib import Path
 from jiwer import wer, cer
+from datasets import load_dataset
 
 random.seed(42)
 torch.manual_seed(42)
@@ -55,11 +56,11 @@ print(
 )
 
 
-if args["dataset"] in ["aishell", "tedlium2", "csj"]:
+if args["dataset"] in ["AISHELL1", "TEDLIUM2", "CSJ"]:
     valid = "dev"
-elif args["dataset"] in ["aishell2"]:
+elif args["dataset"] in ["AISHELL2"]:
     valid = "dev_ios"
-elif args["dataset"] in ["librispeech"]:
+elif args["dataset"] in ["LibriSpeech"]:
     valid = "valid"
 
 if "WANDB_MODE" in os.environ.keys() and os.environ["WANDB_MODE"] == "disabled":
@@ -68,17 +69,20 @@ else:
     fetch_num = -1
 
 if __name__ == "__main__":
-    train_path = f"../../data/{args['dataset']}/data/{setting}/train/data.json"
-    dev_path = f"../../data/{args['dataset']}/data/{setting}/{valid}/data.json"
+    # train_path =f"./data/{args['dataset']}/{setting}/train/{args['nbest']}_align_data.json"
+    # dev_path = f"./data/{args['dataset']}/{setting}/{valid}/{args['nbest']}_align_data.json"
 
-    if (args['dataset'] in ['csj']):
-        train_path = f"./data/csj/{setting}/train/data.json"
-        dev_path = f"./data/csj/{setting}/dev/data.json"
+    # if (args['dataset'] in ['CSJ']):
+    #     train_path = f"./data/CSJ/{setting}/train/data.json"
+    #     dev_path = f"./data/CSJ/{setting}/dev/data.json"
 
-    print(f"Prepare data")
-    with open(train_path) as f, open(dev_path) as d:
-        train_json = json.load(f)
-        dev_json = json.load(d)
+    # print(f"Prepare data")
+    # with open(train_path) as f, open(dev_path) as d:
+    #     train_json = json.load(f)
+    #     dev_json = json.load(d)
+
+    train_json =load_dataset(f"ASR-HypR/{args['dataset']}", split = "train") 
+    dev_json=load_dataset(f"ASR-HypR/{args['dataset']}", split = "dev") 
 
     train_set = get_dataset(
         train_json,
@@ -116,7 +120,7 @@ if __name__ == "__main__":
         shuffle=False,
     )
 
-    logging.warning(f"device:{device}")
+    print(f"device:{device}")
     device = torch.device(device)
 
     model = nBestAlignBart(args, train_args, tokenizer).to(device)

@@ -15,9 +15,9 @@ def getGPTPretrainName(dataset):
         return 'ClassCat/gpt2-base-japanese-v2'
 
 def getBartPretrainName(dataset):
-    if (dataset in ['aishell', 'aishell2']):
+    if (dataset in ['AISHELL1', 'AISHELL2']):
         return 'fnlp/bart-base-chinese'
-    elif (dataset in ['tedlium2', 'librispeech']):
+    elif (dataset in ['TEDLIUM2', 'LibriSpeech']):
         return 'facebook/bart-base'
-    elif (dataset in ['csj']):
+    elif (dataset in ['CSJ']):
         return 'ku-nlp/bart-base-japanese'

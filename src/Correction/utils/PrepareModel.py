@@ -29,28 +29,28 @@ class nBestAlignTrainer(Trainer):
 def prepare_model(dataset, from_pretrain = True):
     print(f'dataset:{dataset}')
     if (from_pretrain):
-        if (dataset in ['aishell', 'aishell2', 'old_aishell', 'aishell_nbest']):
+        if (dataset in ['AISHELL1', 'AISHELL2']):
             print(f'bart-base-chinese')
             model = AutoModelForSeq2SeqLM.from_pretrained(f'fnlp/bart-base-chinese')
             tokenizer = BertTokenizer.from_pretrained(f'fnlp/bart-base-chinese')
-        elif (dataset in ['tedlium2', 'librispeech']): # english
+        elif (dataset in ['TEDLIUM2', 'LibriSpeech']): # english
             model = AutoModelForSeq2SeqLM.from_pretrained(f'facebook/bart-base')
             tokenizer = BartTokenizer.from_pretrained(f'facebook/bart-base')
 
-        elif (dataset in ['csj']): # japanese
+        elif (dataset in ['CSJ']): # japanese
             model = MBartForConditionalGeneration.from_pretrained('ku-nlp/bart-base-japanese')
             tokenizer = AutoTokenizer.from_pretrained('ku-nlp/bart-base-japanese')
     else:
         print(f'Not From Pretrain')
-        if (dataset in ['aishell', 'aishell2', 'old_aishell']):
+        if (dataset in ['AISHELL1', 'AISHELL2']):
             print(f'bart-base-chinese')
             pretrain_name = f'fnlp/bart-base-chinese'
             tokenizer = BertTokenizer.from_pretrained(pretrain_name)
-        elif (dataset in ['tedlium2', 'librispeech']): # english
+        elif (dataset in ['TEDLIUM2', 'LibriSpeech']): # english
             pretrain_name = f'facebook/bart-base'
             tokenizer = BartTokenizer.from_pretrained(f'facebook/bart-base')
 
-        elif (dataset in ['csj']): # japanese
+        elif (dataset in ['CSJ']): # japanese
             pass
             # tokenizer = BartTokenizer.from_pretrained('ClassCat/gpt2-base-japanese-v2')
             config = AutoConfig.from_pretrained(pretrain_name)

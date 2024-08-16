@@ -54,7 +54,7 @@ def predict(model, dataset, tokenizer, loader):
         with torch.no_grad():
             # torch.cuda.synchronize()
             # t0 = time.time()
-            torch.cuda.synchronize()
+            # torch.cuda.synchronize()
             start = torch.cuda.Event(enable_timing=True)
             end = torch.cuda.Event(enable_timing=True)
             start.record()
@@ -67,7 +67,7 @@ def predict(model, dataset, tokenizer, loader):
                 # early_stopping = True
             )
             end.record()
-            torch.cuda.synchronize()
+            # torch.cuda.synchronize()
             # t1 = time.time()
             total_time += start.elapsed_time(end)
 
@@ -125,11 +125,11 @@ if __name__ == '__main__':
     
     if (use_train):
         scoring_set = ['train']
-    elif (args['dataset'] in ["csj"]):
+    elif (args['dataset'] in ["CSJ"]):
         scoring_set = ['dev', 'eval1', 'eval2', 'eval3']
-    elif (args['dataset'] in ["aishell2"]):
+    elif (args['dataset'] in ["AISHELL2"]):
         scoring_set = ["dev", 'test_ios', 'test_mic', 'test_android']
-    elif (args['dataset'] in ['librispeech']):
+    elif (args['dataset'] in ['LibriSpeech']):
         scoring_set = ['dev_clean', 'dev_other', 'test_clean', 'test_other']
     else:
         scoring_set = ['dev', 'test']
@@ -145,7 +145,7 @@ if __name__ == '__main__':
 
     for data_name in scoring_set:
         json_path = f"../../data/{args['dataset']}/data/{setting}/{data_name}/data.json"
-        if (args['dataset'] == 'csj'):
+        if (args['dataset'] == 'CSJ'):
             json_path = f"./data/{args['dataset']}/{setting}/{data_name}/data.json"
         print(f"recognizing:{data_name}")
         with open(json_path) as f:

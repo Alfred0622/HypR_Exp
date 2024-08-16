@@ -41,7 +41,7 @@ def compute_metric(eval_pred):
 
     decoded_preds = tokenizer.batch_decode(hyp, skip_special_tokens=True)
     
-    if (args['dataset'] in ['csj', 'aishell', 'aishell2']):
+    if (args['dataset'] in ['CSJ', 'AISHELL1', 'AISHELL2']):
         for i, pred in enumerate(decoded_preds):
             new_pred = "".join(pred.split())
             new_pred = [p for p in new_pred]
@@ -53,7 +53,7 @@ def compute_metric(eval_pred):
     labels = np.where(ref != -100, ref, tokenizer.pad_token_id)
     decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
-    if (args['dataset'] in ['csj']): 
+    if (args['dataset'] in ['CSJ']): 
         for i, ref in enumerate(decoded_labels):
             new_ref = "".join(ref.split())
             new_ref = [r for r in new_ref]
@@ -74,7 +74,7 @@ args, train_args, recog_args = load_config(config_name)
 print(f"from_pretrain:{train_args['from_pretrain']}")
 
 model, tokenizer = prepare_model(args['dataset'], from_pretrain = train_args['from_pretrain'])
-setting = 'withLM' if args['withLM'] else 'noLM'
+setting = 'withLM' if args['withLM'] else 'withoutLM'
 
 if (args['dataset'] == 'old_aishell'):
     setting = ""
@@ -84,9 +84,9 @@ if (sep_token == '[PAD]'):
     sep_token = tokenizer.pad_token
 print(f'sep_token:{sep_token}')
 
-if (args['dataset'] in ['aishell2']):
+if (args['dataset'] in ['AISHELL2']):
     dev_set = 'dev_ios'
-elif (args['dataset'] in ['librispeech']):
+elif (args['dataset'] in ['LibriSpeech']):
     dev_set = 'valid'
 else:
     dev_set = 'dev'
@@ -114,15 +114,18 @@ if (not os.path.exists(f"./checkpoint/{args['dataset']}/{args['nbest']}_{task_na
 if (not os.path.exists(f"./log/{args['dataset']}/{args['nbest']}_{task_name}/{setting}")):
     os.makedirs(f"./log/{args['dataset']}/{args['nbest']}_{task_name}/{setting}")
 
-train_path = f"../../data/{args['dataset']}/data/{setting}/train/data.json"
-valid_path = f"../../data/{args['dataset']}/data/{setting}/{dev_set}/data.json"
-if (args['dataset'] in ['csj']):
-    train_path = f"./data/csj/{setting}/train/data.json"
-    valid_path = f"./data/csj/{setting}/dev/data.json"
+# train_path = f"../../data/{args['dataset']}/data/{setting}/train/data.json"
+# valid_path = f"../../data/{args['dataset']}/data/{setting}/{dev_set}/data.json"
+# if (args['dataset'] in ['csj']):
+#     train_path = f"./data/csj/{setting}/train/data.json"
+#     valid_path = f"./data/csj/{setting}/dev/data.json"
 
-with open(train_path) as train, open(valid_path) as valid:
-    train_json = json.load(train)
-    valid_json = json.load(valid)
+# with open(train_path) as train, open(valid_path) as valid:
+#     train_json = json.load(train)
+#     valid_json = json.load(valid)
+
+train_json = load_dataset(f"ASR-HypR/{args['dataset']}_{setting}", split = 'train')
+valid_json = load_dataset(f"ASR-HypR/{args['dataset']}_{setting}", split = 'dev')
 
 if (topk < 0):
     topk = args['nbest']

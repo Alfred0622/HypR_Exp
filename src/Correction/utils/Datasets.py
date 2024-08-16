@@ -101,7 +101,7 @@ def get_dataset(data_json, dataset ,tokenizer, topk, sep_token = '[SEP]', data_t
                                 "top_hyp": data['hyps'][0].replace("<eos>", "").strip(),
                             }
                     )
-                # if (i > 16): break
+                if (fetch_num > 0 and i > fetch_num): break
                     
 
         elif (data_type == 'concat'):
@@ -144,7 +144,7 @@ def get_dataset(data_json, dataset ,tokenizer, topk, sep_token = '[SEP]', data_t
                         "ref_text": ref,
                     }
                 )
-                if (fetch_num > 0 and i > fetch_num):
+                if (fetch_num > 0 and j > fetch_num):
                     break
             
         elif (data_type == 'align'):
@@ -191,7 +191,7 @@ def get_dataset(data_json, dataset ,tokenizer, topk, sep_token = '[SEP]', data_t
                 # print(f'label:{label}')
                 data_list.append(
                     {
-                        "name": data['name'],
+                        "name": data['utt_id'],
                         "hyps_text": hyps_text,
                         "input_ids": input_ids,
                         "labels": label,
@@ -209,7 +209,7 @@ def get_dataset(data_json, dataset ,tokenizer, topk, sep_token = '[SEP]', data_t
     else:
         if (data_type == 'single'):
             for data in tqdm(data_json, ncols = 80):
-                name = data['name']
+                name = data['utt_id']
                 hyp = preprocess_string(data['hyps'][0], dataset)
                 output = tokenizer(hyp)
                 if ('token_type_ids' in output.keys()):
@@ -237,7 +237,7 @@ def get_dataset(data_json, dataset ,tokenizer, topk, sep_token = '[SEP]', data_t
 
             for j, data in enumerate(tqdm(data_json, ncols = 80)):
 
-                name = data['name']
+                name = data['utt_id']
                 concat_str = str()
                 for i in range(topk):
                     hyp = preprocess_string(data['hyps'][i], dataset)
