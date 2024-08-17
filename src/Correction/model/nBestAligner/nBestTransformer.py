@@ -19,7 +19,7 @@ from transformers import (
     AutoConfig
 )
 from torch.nn.utils.rnn import pad_sequence
-from models.nBestAligner.nBestAlign import align, alignNbest
+from model.nBestAligner.nBestAlign import align, alignNbest
 import sys
 sys.path.append("../")
 from src_utils.getPretrainName import getBartPretrainName

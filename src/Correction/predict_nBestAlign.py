@@ -13,7 +13,7 @@ from utils.Datasets import get_dataset
 from utils.CollateFunc import recogBatch
 from src_utils.LoadConfig import load_config
 from utils.PrepareModel import prepare_model
-from models.nBestAligner.nBestTransformer import nBestAlignBart
+from model.nBestAligner.nBestTransformer import nBestAlignBart
 from utils.Datasets import get_dataset
 from utils.CollateFunc import nBestAlignBatch
 from pathlib import Path
@@ -110,7 +110,7 @@ for task in recog_set:
             hyps += hyp_tokens
             top_hyps += data['top_hyp']
             refs += data['ref_text']
-            names += data['name']
+            names += data['utt_id']
 
             # for name, hyp, top_hyp, ref in zip(
             #     data["name"], hyp_tokens, data["top_hyp"], data["ref_text"]

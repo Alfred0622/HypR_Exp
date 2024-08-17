@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append("..")
-from models.nBestAligner.nBestAlign import align, alignNbest
+from model.nBestAligner.nBestAlign import align, alignNbest
 import json
 from transformers import BertTokenizer, BartTokenizer
 from pathlib import Path

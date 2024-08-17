@@ -1,0 +1,19 @@
+args:
+  stage: 0
+  stop_stage: 0
+  nbest: 10 # max: 50
+  withLM: False
+  model_name: sem
+  dataset: AISHELL1
+
+train:
+  epoch: 3
+  train_batch: 64
+  valid_batch: 64
+  accumgrad: 4
+  print_loss: 5000  # Print loss after iterate N steps
+  lr: 1e-6 # learning rate
+
+recog:
+  batch: 1
+  find_weight: False

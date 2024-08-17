@@ -1,0 +1,23 @@
+args:
+  nbest: 10
+  withLM: False
+  model_name: alsem
+  dataset: AISHELL1
+train: 
+  epoch: 4
+  train_batch: 256
+  valid_batch: 256
+  accum_grads: 1
+  print_loss: 5000
+  lr: 1e-5
+  ctc_weight: {AISHELL1: 0.7,
+  AISHELL2: 0.5,
+  LibriSpeech: 0.5,
+  CSJ: 0.3,
+  TEDLIUM2: 0.3
+}                                      
+  
+
+recog:
+  batch: 1
+  find_weight: False

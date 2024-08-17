@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
-from models.nBestAligner.nBestAlign import align, alignNbest
+from model.nBestAligner.nBestAlign import align, alignNbest
 from jiwer import wer
 from pyknp import Juman
 

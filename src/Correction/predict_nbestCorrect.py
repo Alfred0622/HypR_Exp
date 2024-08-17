@@ -184,31 +184,31 @@ if __name__ == '__main__':
 
         for data in data_json:
 
-            # print(f"\n Ref:{output[data['name']]['ref']} \n Hyp:{output[data['name']]['hyp']}")
+            # print(f"\n Ref:{output[data['utt_id']]['ref']} \n Hyp:{output[data['utt_id']]['hyp']}")
             # exit(0)
             if (args['dataset'] in ['csj']):
-                output[data['name']]['hyp'] = " ".join(output[data['name']]['hyp'].replace(" ", ""))
-                output[data['name']]['top_hyp'] = " ".join(output[data['name']]['top_hyp'].replace(" ", ""))
-                output[data['name']]['ref'] = " ".join(output[data['name']]['ref'].replace(" ", ""))
+                output[data['utt_id']]['hyp'] = " ".join(output[data['utt_id']]['hyp'].replace(" ", ""))
+                output[data['utt_id']]['top_hyp'] = " ".join(output[data['utt_id']]['top_hyp'].replace(" ", ""))
+                output[data['utt_id']]['ref'] = " ".join(output[data['utt_id']]['ref'].replace(" ", ""))
 
-            ref.append(output[data['name']]['ref'])
-            hyp.append(output[data['name']]['hyp'])
-            top_1_hyp.append(output[data['name']]['top_hyp'])
+            ref.append(output[data['utt_id']]['ref'])
+            hyp.append(output[data['utt_id']]['hyp'])
+            top_1_hyp.append(output[data['utt_id']]['top_hyp'])
 
             corrupt_flag = "Missed"
 
-            if (output[data['name']]['top_hyp'] == output[data['name']]['ref']):
-                if (output[data['name']]['hyp'] != output[data['name']]['ref']):
+            if (output[data['utt_id']]['top_hyp'] == output[data['utt_id']]['ref']):
+                if (output[data['utt_id']]['hyp'] != output[data['utt_id']]['ref']):
                     corrupt_flag = "Totally_Corrupt"
                 else:
                     corrupt_flag = "Remain_Correct"
 
             else:
-                if (output[data['name']]['hyp'] == output[data['name']]['ref']):
+                if (output[data['utt_id']]['hyp'] == output[data['utt_id']]['ref']):
                     corrupt_flag = "Totally_Improve"
                 else:
-                    top_wer = wer(output[data['name']]['ref'], data['hyps'][0])
-                    rerank_wer = wer(output[data['name']]['ref'], output[data['name']]['hyp'])
+                    top_wer = wer(output[data['utt_id']]['ref'], data['hyps'][0])
+                    rerank_wer = wer(output[data['utt_id']]['ref'], output[data['utt_id']]['hyp'])
                     if (top_wer < rerank_wer):
                         corrupt_flag = "Partial_Corrupt"
                     elif (top_wer == rerank_wer):
@@ -218,13 +218,13 @@ if __name__ == '__main__':
 
             if (args['dataset'] in ['aishell', 'aishell2','csj']):
                 out = process_characters(
-                    ["".join(output[data['name']]['ref'].split(' '))],
-                    ["".join(output[data['name']]['hyp'].split(' '))]
+                    ["".join(output[data['utt_id']]['ref'].split(' '))],
+                    ["".join(output[data['utt_id']]['hyp'].split(' '))]
                 )
             else:
                 out = process_characters(
-                    [output[data['name']]['ref']],
-                    [output[data['name']]['hyp']]
+                    [output[data['utt_id']]['ref']],
+                    [output[data['utt_id']]['hyp']]
                 )
 
             align_result = visualize_alignment(out, show_measures=False, skip_correct=False).split('\n')
@@ -234,13 +234,13 @@ if __name__ == '__main__':
     
             result_dict.append(
                 {
-                    "org": output[data['name']]['top_hyp'],
-                    "hyp": output[data['name']]['hyp'],
-                    "ref": output[data['name']]['ref'],
+                    "org": output[data['utt_id']]['top_hyp'],
+                    "hyp": output[data['utt_id']]['hyp'],
+                    "ref": output[data['utt_id']]['ref'],
                     "REF": align_ref,
                     "HYP": align_hyp,
                     "TAG": result_tag,
-                    "check1": "Correct" if output[data['name']]['hyp'] == output[data['name']]['ref'] else "Wrong",
+                    "check1": "Correct" if output[data['utt_id']]['hyp'] == output[data['utt_id']]['ref'] else "Wrong",
                     "check2": corrupt_flag
                 }
             )

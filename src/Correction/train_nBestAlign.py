@@ -7,7 +7,7 @@ import yaml
 import logging
 import torch
 from torch.utils.data import DataLoader
-from models.nBestAligner.nBestTransformer import nBestAlignBart
+from model.nBestAligner.nBestTransformer import nBestAlignBart
 from transformers import BertTokenizer
 from utils.PrepareModel import prepare_model
 from src_utils.LoadConfig import load_config
