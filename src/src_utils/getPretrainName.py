@@ -3,15 +3,15 @@ def getBertPretrainName(dataset):
         return 'bert-base-chinese'
     elif (dataset in ['tedlium2', 'librispeech', 'TEDLIUM2', 'LibriSpeech']):
         return 'bert-base-uncased'
-    elif (dataset in ['csj']):
+    elif (dataset in ['csj', 'CSJ']):
         return 'cl-tohoku/bert-base-japanese'
 
 def getGPTPretrainName(dataset):
-    if (dataset in ['aishell', 'aishell2']):
+    if (dataset in ['aishell', 'aishell2', 'AISHELL1', 'AISHELL2']):
         return 'bert-base-chinese'
-    elif (dataset in ['tedlium2', 'librispeech']):
+    elif (dataset in ['tedlium2', 'librispeech', 'TEDLIUM2', 'LibriSpeech']):
         return 'gpt2'
-    elif (dataset in ['csj']):
+    elif (dataset in ['csj', 'CSJ']):
         return 'ClassCat/gpt2-base-japanese-v2'
 
 def getBartPretrainName(dataset):

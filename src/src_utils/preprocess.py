@@ -9,7 +9,7 @@ def preprocess_string(string, dataset):
     string = string.replace("<eos>", "").strip().split()
     string = [token for token in string]
 
-    if (dataset in ['csj']):
+    if (dataset in ['csj', 'CSJ']):
         string = change_unicode(string)
         string = "".join(string)
     else:
